@@ -135,6 +135,14 @@ app.get("/api/members/randomPhoto", (req, res) => {
     res.status(400).send("You don't have access!");
 });
 
+app.get("/api/members/getUsername", (req, res) => {
+    if (req.session.authenticated) {
+        res.send(req.session.username);
+        return;
+    }
+    res.status(404).send("You're not logged in!");
+});
+
 app.get("/api/logout", (req, res) => {
     if (req.session.authenticated) req.session.destroy();
     res.redirect("/login");
@@ -171,6 +179,10 @@ app.get("/members", (req, res) => {
 
 app.get("/", (req, res) => {
     res.send(readFile("src/index.html"));
+});
+
+app.use((req, res, next) => {
+    res.status(404).send(readFile("src/error.html"));
 });
 
 app.listen(port, () => {

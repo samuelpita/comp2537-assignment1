@@ -4,6 +4,12 @@
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>Document</title>
+        <style>
+            nav > a {
+                display: block;
+                width: 100%;
+            }
+        </style>
     </head>
     <body>
         <h1>Create a new account</h1>
@@ -14,6 +20,9 @@
             <input type="password" name="password" />
             <button type="submit">Create account</button>
         </form>
-        <a href="/login">I already have an account</a>
+        <nav>
+            <a href="/login">I already have an account</a>
+            <a href="/">Home</a>
+        </nav>
     </body>
 </html>

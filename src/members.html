@@ -12,8 +12,20 @@
     </head>
     <body>
         <h1>Members page!</h1>
+        <h3>Hello <span id="username">user</span></h3>
         <div>
             <img src="/api/members/randomPhoto" alt="" id="photo" class="photo" />
         </div>
+        <a href="/api/logout">Sign out</a>
+
+        <script>
+            fetch("/api/members/getUsername")
+                .then((res) => {
+                    return res.text();
+                })
+                .then((body) => {
+                    document.getElementById("username").textContent = body;
+                });
+        </script>
     </body>
 </html>
