@@ -1,0 +1,12 @@
+<!-- prettier-ignore -->
+<div class="p-2">
+    <h5 class="text-xl"><%= user.username %></h5>
+    <p class="italic"><%= user._id %></p>
+    <% if (user.admin) { %>
+        <p class="text-red-500">Admin</p>
+        <a href="/api/admin/revokeAdmin/<%= user._id %>" class="text-teal-500 underline">Revoke Admin</a>
+    <% } else { %>
+        <p>Member</p>
+        <a href="/api/admin/grantAdmin/<%= user._id %>" class="text-teal-500 underline">Grant Admin</a>
+    <% } %>
+</div>
