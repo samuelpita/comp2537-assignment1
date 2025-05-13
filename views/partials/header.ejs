@@ -1,0 +1,25 @@
+<header class="w-full px-4 py-2 border-b flex items-center flex-col md:flex-row md:justify-between">
+    <h1 class="text-2xl">Sam's Website</h1>
+
+    <nav class="*:not-last:mr-4 flex *:flex *:items-center *:gap-2">
+        <% if (user) { %>
+        <a href="/members">
+            <img src="/icons/user-circle.svg" alt="" class="size-8" />
+            <span class="text-teal-500 underline underline-offset-2">Members</span>
+        </a>
+        <a href="/api/logout">
+            <img src="/icons/sign-out.svg" alt="" class="size-8" />
+            <span class="text-teal-500 underline underline-offset-2">Log Out</span>
+        </a>
+        <% } else { %>
+        <a href="/login">
+            <img src="/icons/sign-in.svg" alt="" class="size-8" />
+            <span class="text-teal-500 underline underline-offset-2">Log In</span>
+        </a>
+        <a href="/register">
+            <img src="/icons/add-user.svg" alt="" class="size-8" />
+            <span class="text-teal-500 underline underline-offset-2">Register</span>
+        </a>
+        <% } %>
+    </nav>
+</header>

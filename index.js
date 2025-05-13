@@ -54,6 +54,21 @@ function randomElement(arr) {
     return arr[index];
 }
 
+function onLoggedIn(req, isLoggedInCallback, notLoggedInCallback) {
+    if (req.session.authenticated) return isLoggedInCallback();
+    return notLoggedInCallback();
+}
+
+async function onAdmin(userId, isAdminCallback, notAdminCallback) {
+    const userIsAdmin = await userCollection.findOne({ _id: ensureId(userId) }).then((doc) => {
+        if (doc) return doc.admin;
+        return null;
+    });
+
+    if (userIsAdmin) return isAdminCallback();
+    return notAdminCallback();
+}
+
 //#endregion
 
 //#region Middleware Functions
@@ -65,20 +80,36 @@ function ensureId(id) {
 
 function checkLoggedIn(req, res, next) {
     if (!req.session.authenticated) {
-        res.send("src/login.html");
+        res.redirect("/login");
         return;
     }
 
     next();
 }
 
-function checkAdmin(req, res, next) {
-    if (!req.session.admin) {
-        res.render(readFile("src/error.html"));
-        return;
-    }
+async function checkAdmin(req, res, next) {
+    // const userIsAdmin = await userCollection
+    //     .findOne({ _id: ensureId(req.session.userId) })
+    //     .then((doc) => {
+    //         if (doc) return doc.admin;
+    //         return null;
+    //     });
 
-    next();
+    // if (!userIsAdmin) {
+    //     res.send(readFile("src/error.html"));
+    //     return;
+    // }
+
+    // next();
+
+    onAdmin(
+        req.session.userId,
+        () => next(),
+        () => {
+            res.send(readFile("src/error.html"));
+            return;
+        }
+    );
 }
 
 //#endregion
@@ -125,10 +156,14 @@ app.post("/api/login", async (req, res) => {
         } else if (bcrypt.compareSync(password, doc.password)) {
             req.session.authenticated = true;
             req.session.username = username;
-            req.session.admin = doc.admin;
+            req.session.userId = doc._id.toString();
             req.session.cookie.maxAge = 60 * 60 * 24 * 1000;
-            if (req.session.admin) res.redirect("/admin");
-            else res.redirect("/members");
+
+            onAdmin(
+                req.session.userId,
+                () => res.redirect("/admin"),
+                () => res.redirect("/members")
+            );
         } else {
             console.log("Incorrect password!");
             res.redirect("/login");
@@ -163,12 +198,25 @@ app.post("/api/register", async (req, res) => {
     else res.redirect("/register");
 });
 
-app.get("/api/members/randomPhoto", (req, res) => {
+app.get("/api/members/randomPhoto/:id", (req, res) => {
     if (req.session.authenticated) {
         const imagePath = path.join(
             __dirname,
             "photos",
-            randomElement(["DSC_0706.jpg", "DSC_0728.jpg", "DSC_0794.jpg", "DSC_0874.jpg"])
+            randomElement([
+                "DSC_0706.jpg",
+                "DSC_0728.jpg",
+                "DSC_0794.jpg",
+                "DSC_0874.jpg",
+                "U_1.jpg",
+                "U_3.jpg",
+                "U_4.jpg",
+                "U_5.jpg",
+                "U_8.jpg",
+                "U_11.jpg",
+                "U_12.jpg",
+                "U_13.jpg",
+            ])
         );
         res.sendFile(imagePath);
         return;
@@ -212,6 +260,8 @@ app.get("/api/admin/revokeAdmin/:userId", checkLoggedIn, checkAdmin, async (req,
         .updateOne({ _id: ensureId(userId) }, { $set: { admin: false } })
         .then((result) => console.log(`Modified ${result.modifiedCount} documents!`))
         .catch((err) => console.log(err));
+
+    if (userId == req.session.userId) res.redirect("/api/logout");
 
     res.redirect("/admin?username=");
 });
@@ -259,7 +309,7 @@ app.get("/login", (req, res) => {
         return;
     }
 
-    res.send(readFile("src/login.html"));
+    res.render("login");
 });
 
 app.get("/register", (req, res) => {
@@ -268,15 +318,23 @@ app.get("/register", (req, res) => {
         return;
     }
 
-    res.send(readFile("src/register.html"));
+    res.render("register");
 });
 
 app.get("/members", checkLoggedIn, (req, res) => {
-    res.send(readFile("src/members.html"));
+    onLoggedIn(
+        req,
+        () => res.render("members", { user: req.session.username }),
+        () => res.render("members", { user: null })
+    );
 });
 
 app.get("/", (req, res) => {
-    res.send(readFile("src/index.html"));
+    onLoggedIn(
+        req,
+        () => res.render("index", { user: req.session.username }),
+        () => res.render("index", { user: null })
+    );
 });
 
 app.use((req, res, next) => {
